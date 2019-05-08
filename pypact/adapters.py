@@ -115,5 +115,5 @@ class CommandFactory:
             else:
                 param = str(val[2:]) if val[:2] == "/i" else '"' + val + '"'
             pact_command += " " + param
-        command = pact_command + time_param if time_param else ""
+        command = pact_command + (time_param if time_param else "")
         return command + ")"
