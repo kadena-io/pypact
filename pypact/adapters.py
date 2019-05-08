@@ -40,25 +40,24 @@ class BasePactAdapter:
         return CommandFactory(module_name, func_name, keyset, **kwargs).create()
 
     @staticmethod
-    def build_request(pact_code, pub_key, priv_key):
-        test_data = "arbitrary user data"
-        nonce = str(datetime.datetime.now())
+    def build_request(pact_code, pub_key, priv_key, keyset_name, test_data=None):
         cmd = {
             "address": None,
             "payload": {
                 "exec": {
-                    "data": {"testdata": test_data, "issuer-admin-keyset": [pub_key]},
+                    "data": {
+                        "testdata": test_data or "arbitrary user data",
+                        keyset_name: [pub_key],
+                    },
                     "code": pact_code,
                 }
             },
-            "nonce": nonce,
+            "nonce": str(datetime.datetime.now()),
         }
-
         pact_cmd = json.dumps(cmd)
         hash_code, sig = BasePactAdapter.generate_code_hash_and_sign(
             pact_cmd, pub_key, priv_key
         )
-
         cmds = {
             "cmds": [
                 {
@@ -92,6 +91,14 @@ class CommandFactory:
         self.kwargs = kwargs
         self.keyset = keyset
 
+    def _get_time_param(self):
+        """Returns formatted time if `time` key in kwargs otherwise None"""
+        try:
+            time_param = self.kwargs.pop("time")
+            return ' (time "{tm}")'.format(tm=time_param)
+        except KeyError:
+            pass
+
     def create(self):
         """ Generate pact command.
 
@@ -99,8 +106,14 @@ class CommandFactory:
         """
         pact_command = f"(use '{self.module_name}) ({self.function_name}"
 
+        # NOTE: make sure that you pass `time` parameter as last parameter to pact
+        # function
+        time_param = self._get_time_param()
         for val in self.kwargs.values():
-            param = str(val[2:]) if val[:2] == "/i" else '"' + val + '"'
+            if isinstance(val, float):
+                param = str(val)
+            else:
+                param = str(val[2:]) if val[:2] == "/i" else '"' + val + '"'
             pact_command += " " + param
-
-        return pact_command + " " + self.keyset + ")"
+        command = pact_command + time_param if time_param else ""
+        return command + ")"
