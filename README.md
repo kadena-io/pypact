@@ -10,22 +10,23 @@ pypact configuration use environment variables: **PUB_KEY**, **PRIV_KEY**, **PAC
 
 Prepare pact code, sign it and send to pact server:
 
-	from pypact import api
-	from pypact.adapters import BasePactAdapter
+```python
+from pypact import api
+from pypact.adapters import BasePactAdapter
 
 
-	code = BasePactAdapter.build_code(
-		"<module_name>",
-		"<function_name",
-		"<keyset>" or ""
-	)
-	# Output of the code
-	print(code)
+code = BasePactAdapter.build_code(
+	"<module_name>",
+	"<function_name",
+	"<keyset>" or ""
+)
+# Output of the code
+print(code)
 
-	# Send request and listen for the executed command
-	result = api.send_and_listen(code, "<keyset>")
-	print(result)
-
+# Send request and listen for the executed command
+result = api.send_and_listen(code, "<keyset>")
+print(result)
+```
 
 You can request to */local*, */send* and */listen* endpoint using methods in *api.py*
  
