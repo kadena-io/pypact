@@ -7,6 +7,7 @@ setup(
     include_package_data=True,
     install_requires=[
         'ed25519',
+        'requests',
     ]
 )
 
