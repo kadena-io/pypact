@@ -34,6 +34,18 @@ def send(pact_command, keyset):
     )
     return _request("send", req_body, json_=True)
 
+def send_batch_commands(pact_command_list, keyset):
+    """ Make a POST Request to Pact API's 'send' endpoint.
+
+    :param pact_command: Serialised pact command
+    :return: The result of POST request
+    """
+    req_body = json.loads(
+        BasePactAdapter.build_batch_command_request_body(
+            pact_command_list, PUB_KEY, PRIV_KEY, keyset
+        )
+    )
+    return _request("send", req_body, json_=True)
 
 def listen(listen_key):
     """Make a POST Request to Pact API's 'listen' endpoint.
