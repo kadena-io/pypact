@@ -10,6 +10,7 @@ Functions:
 
 import json
 import requests
+import time
 
 from .config import PACT_SERVER, PUB_KEY, PRIV_KEY
 from .adapters import BasePactAdapter
@@ -21,7 +22,7 @@ def _request(endpoint, body, json_=False):
     return requests.post(PACT_SERVER + endpoint, json=body)
 
 
-def send(pact_command, keyset):
+def send(pact_command, keyset=""):
     """ Make a POST Request to Pact API's 'send' endpoint.
 
     :param pact_command: Serialised pact command
@@ -34,7 +35,8 @@ def send(pact_command, keyset):
     )
     return _request("send", req_body, json_=True)
 
-def send_batch_commands(pact_command_list, keyset):
+
+def send_batch_commands(pact_command_list, keyset=""):
     """ Make a POST Request to Pact API's 'send' endpoint.
 
     :param pact_command: Serialised pact command
@@ -45,7 +47,13 @@ def send_batch_commands(pact_command_list, keyset):
             pact_command_list, PUB_KEY, PRIV_KEY, keyset
         )
     )
-    return _request("send", req_body, json_=True)
+
+    # start = time.time()
+    req_res = _request("send", req_body, json_=True)
+    # end = time.time()
+    # print(end - start)
+    return req_res
+
 
 def listen(listen_key):
     """Make a POST Request to Pact API's 'listen' endpoint.
@@ -56,16 +64,22 @@ def listen(listen_key):
     return _request("listen", json.dumps({"listen": listen_key}))
 
 
-def local(listen_key):
-    """Make a POST Request to Pact API's 'local' endpoint.
+def local(pact_command, keyset=""):
+    """ Make a POST Request to Pact API's 'local' endpoint.
 
-    :param listen_key: A key to be used for 'local' endpoint body
+    :param pact_command: Serialised pact command
     :return: The result of POST request
     """
-    return _request("local", json.dumps({"listen": listen_key}))
+    req_body = json.loads(
+        BasePactAdapter.build_local_request(
+            pact_command, PUB_KEY, PRIV_KEY, keyset
+        )
+    )
+
+    return _request("local", req_body, json_=True)
 
 
-def send_and_listen(pact_command, keyset):
+def send_and_listen(pact_command, keyset=""):
     """Call 'send' and 'listen' functions, respectively.
 
     :param pact_command: Serialised pact command
