@@ -12,14 +12,15 @@ import json
 import requests
 import time
 
-from .config import PACT_SERVER, PUB_KEY, PRIV_KEY
+from . import config
 from .adapters import BasePactAdapter
 
 
 def _request(endpoint, body, json_=False):
+
     if not json_:
-        return requests.post(PACT_SERVER + endpoint, body)
-    return requests.post(PACT_SERVER + endpoint, json=body)
+        return requests.post(config.PACT_SERVER + endpoint, body)
+    return requests.post(config.PACT_SERVER + endpoint, json=body)
 
 
 def send(pact_command, keyset=""):
@@ -30,7 +31,7 @@ def send(pact_command, keyset=""):
     """
     req_body = json.loads(
         BasePactAdapter.build_request(
-            pact_command, PUB_KEY, PRIV_KEY, keyset
+            pact_command, config.PUB_KEY, config.PRIV_KEY, keyset
         )
     )
     return _request("send", req_body, json_=True)
@@ -44,14 +45,11 @@ def send_batch_commands(pact_command_list, keyset=""):
     """
     req_body = json.loads(
         BasePactAdapter.build_batch_command_request_body(
-            pact_command_list, PUB_KEY, PRIV_KEY, keyset
+            pact_command_list, config.PUB_KEY, config.PRIV_KEY, keyset
         )
     )
 
-    # start = time.time()
     req_res = _request("send", req_body, json_=True)
-    # end = time.time()
-    # print(end - start)
     return req_res
 
 
@@ -72,7 +70,7 @@ def local(pact_command, keyset=""):
     """
     req_body = json.loads(
         BasePactAdapter.build_local_request(
-            pact_command, PUB_KEY, PRIV_KEY, keyset
+            pact_command, config.PUB_KEY, config.PRIV_KEY, keyset
         )
     )
 
