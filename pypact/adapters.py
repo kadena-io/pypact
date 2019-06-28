@@ -3,6 +3,7 @@ import hashlib
 import json
 import ed25519
 
+
 class BasePactAdapter:
     @staticmethod
     def generate_hash_code_and_sign(pact_command, pub_key, priv_key):
@@ -24,17 +25,10 @@ class BasePactAdapter:
         return hash2b.hexdigest(), sk.sign(hash2b.digest()).hex()
 
     @staticmethod
-    def make_command_json_body(pact_command, pub_key, keyset_name):
+    def make_command_json_body(pact_command, pub_key, keysets):
         cmd = {
             "address": None,
-            "payload": {
-                "exec": {
-                    "data": {
-                        keyset_name: [pub_key],
-                    },
-                    "code": pact_command,
-                }
-            },
+            "payload": {"exec": {"data": keysets, "code": pact_command}},
             "nonce": str(datetime.datetime.now()),
         }
         return cmd
@@ -53,35 +47,39 @@ class BasePactAdapter:
         return cmds_body
 
     @staticmethod
-    def build_request(pact_command, pub_key, priv_key, keyset_name):
-        cmd = BasePactAdapter.make_command_json_body(pact_command, pub_key,
-                                                     keyset_name)
+    def build_request(pact_command, pub_key, priv_key, keysets):
+        cmd = BasePactAdapter.make_command_json_body(
+            pact_command, pub_key, keysets
+        )
         cmds = {
-            "cmds": [BasePactAdapter.add_command_to_commands(cmd, pub_key,
-                                                             priv_key)]
+            "cmds": [
+                BasePactAdapter.add_command_to_commands(cmd, pub_key, priv_key)
+            ]
         }
         return json.dumps(cmds)
 
     @staticmethod
-    def build_local_request(pact_command, pub_key, priv_key, keyset_name):
-        cmd = BasePactAdapter.make_command_json_body(pact_command, pub_key,
-                                                     keyset_name)
+    def build_local_request(pact_command, pub_key, priv_key, keysets):
+        cmd = BasePactAdapter.make_command_json_body(
+            pact_command, pub_key, keysets
+        )
         cmds = BasePactAdapter.add_command_to_commands(cmd, pub_key, priv_key)
 
         return json.dumps(cmds)
 
     @staticmethod
-    def build_batch_command_request_body(pact_commands, pub_key, priv_key,
-                                         keyset_name):
-        cmds = {
-            "cmds": []}
+    def build_batch_command_request_body(
+        pact_commands, pub_key, priv_key, keysets
+    ):
+        cmds = {"cmds": []}
 
         for single_command in pact_commands:
-            cmd = BasePactAdapter.make_command_json_body(single_command,
-                                                         pub_key,
-                                                         keyset_name)
-            single_cmd = BasePactAdapter.add_command_to_commands(cmd, pub_key,
-                                                                 priv_key)
+            cmd = BasePactAdapter.make_command_json_body(
+                single_command, pub_key, keysets
+            )
+            single_cmd = BasePactAdapter.add_command_to_commands(
+                cmd, pub_key, priv_key
+            )
             cmds["cmds"].append(single_cmd)
 
         return json.dumps(cmds)
