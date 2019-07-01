@@ -22,14 +22,15 @@ def _request(endpoint, body, json_=False):
     return requests.post(config.PACT_SERVER + endpoint, json=body)
 
 
-def send(
-    pact_command, keysets, pub_key=config.PUB_KEY, priv_key=config.PRIV_KEY
-):
+def send(pact_command, keysets, pub_key="", priv_key=""):
     """ Make a POST Request to Pact API's 'send' endpoint.
 
     :param pact_command: Serialised pact command
     :return: The result of POST request
     """
+    pub_key = pub_key or config.PUB_KEY
+    priv_key = priv_key or config.PRIV_KEY
+
     req_body = json.loads(
         BasePactAdapter.build_request(pact_command, pub_key, priv_key, keysets)
     )
@@ -82,10 +83,7 @@ def send_and_listen(pact_command, keysets, pub_key="", priv_key=""):
     :param pact_command: Serialised pact command
     :return: The result of POST request
     """
-    if pub_key and priv_key:
-        resp = json.loads(send(pact_command, keysets, pub_key, priv_key).text)
-    else:
-        resp = json.loads(send(pact_command, keysets).text)
+    resp = json.loads(send(pact_command, keysets, pub_key, priv_key).text)
     listen_response_text = listen(resp["response"]["requestKeys"].pop()).text
     response = json.loads(listen_response_text)["response"]
 
